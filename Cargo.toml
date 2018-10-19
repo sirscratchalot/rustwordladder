@@ -1,0 +1,6 @@
+[package]
+name = "wordladder"
+version = "0.1.0"
+authors = ["Erik Malm <malm.erik@gmail.com>"]
+
+[dependencies]
