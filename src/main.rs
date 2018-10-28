@@ -1,3 +1,6 @@
+mod graph;
+use graph::WordGraph;
+use graph::word::Word;
 use std::env;
 use std::io::BufReader;
 use std::io::BufRead;
@@ -5,9 +8,6 @@ use std::io::Result;
 use std::fs::File;
 use std::path::Path;
 use std::error::Error;
-use std::collections::HashMap;
-use word::Word;
-mod word;
 fn main() {
     let args:Vec<String> = env::args().collect();
     match args.get(1) {
@@ -27,12 +27,27 @@ fn do_the_thing(file_path:String) {
     };
     let word_up:Vec<Word> = reader.lines().filter(|line| match line { Ok(_string) => true, _ => false})
         .map(|string| {Word::new(string.unwrap())}).collect(); //words
+    let mut graph = WordGraph::new(word_up);
 
+    graph.setup_neighbors(); 
+    graph.print_nodes();
+
+    let mut longest:usize = 0;
+    for (i,node) in graph.nodes.iter().enumerate() {
+        let ladder:Vec<usize>  =  WordGraph::longest_ladder(&graph,i,vec!(i)); 
+       if ladder.len()>longest {
+           longest=ladder.len();
+        println!("New record! Ladder is: {} in length.",longest);
+        print_the_thing(&graph,ladder);
+       }
+
+    }
 }
 
-fn map_neighbors(mut words_up:Vec<Word>){
-    for mut word in words_up.iter_mut() {
-//        word.store_neighbors(&mut words_up);
+fn print_the_thing(graph:&WordGraph,nodes:Vec<usize>) {
+    for i in nodes {
+        println!("{}",graph.nodes[i].full);
     }
     
 }
+
