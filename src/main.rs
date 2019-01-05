@@ -1,5 +1,6 @@
 mod graph;
 use graph::WordGraph;
+use graph::graphstat::GraphStat;
 use graph::word::Word;
 use std::env;
 use std::io::BufReader;
@@ -11,14 +12,14 @@ use std::error::Error;
 fn main() {
     let args:Vec<String> = env::args().collect();
     match args.get(1) {
-        Some(arg) => do_the_thing(arg.clone()),
+        Some(arg) => walk_the_tree_walk(arg.clone()),
         _ => ()
     }
     let size = args.len() as u32; //Usize is always copied. "as" keyword allows casting.
 
 
 }
-fn do_the_thing(file_path:String) {
+fn walk_the_tree_walk(file_path:String) {
     let path = Path::new(&file_path);
     let reader = match File::open(Path::new(path)) {
         Err(why_man_why) => panic!("I just couldn't do it. I'm sorry. {} {}",file_path,why_man_why.description()),
@@ -27,6 +28,7 @@ fn do_the_thing(file_path:String) {
     };
     let word_up:Vec<Word> = reader.lines().filter(|line| match line { Ok(_string) => true, _ => false})
         .map(|string| {Word::new(string.unwrap())}).collect(); //words
+    let mut graph_stats = GraphStat::new();
     let mut graph = WordGraph::new(word_up);
 
     graph.setup_neighbors(); 
@@ -34,13 +36,8 @@ fn do_the_thing(file_path:String) {
 
     let mut longest:usize = 0;
     for (i,node) in graph.nodes.iter().enumerate() {
-        let ladder:Vec<usize>  =  WordGraph::longest_ladder(&graph,i,vec!(i)); 
-       if ladder.len()>longest {
-           longest=ladder.len();
-        println!("New record! Ladder is: {} in length.",longest);
-        print_the_thing(&graph,ladder);
-       }
-
+        println!("No. {}, max: {} ",i,graph_stats.max_length);
+        let ladder:Vec<usize>  =  WordGraph::longest_ladder(&graph,i,vec!(i),&mut graph_stats); 
     }
 }
 
