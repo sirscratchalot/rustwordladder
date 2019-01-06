@@ -1,3 +1,5 @@
+use std::clone::Clone;
+
     #[derive(Debug)]
     pub struct Word {
         pub full:String,
@@ -18,7 +20,6 @@
         pub fn add_neighbor(&mut self,index:usize){
             self.neighbors.push(index);
         }
-
         pub fn check_neighbor(&self, compare_word:&mut Word) -> bool  {
             //Assume same length words, could assume pure ascii one-byte chars but.. nah.
             //This works with scalars..
@@ -34,6 +35,19 @@
             }
             true
         }
+  
     }
+impl Clone for Word {
+    fn clone(&self) -> Word {
+        Word {
+            full:self.full.clone(),
+            neighbors:self.neighbors.clone(),
+            char_vec:self.char_vec.clone()
+        }
+    }
+    }
+
+
+
 
 

@@ -36,8 +36,9 @@ fn walk_the_tree_walk(file_path:String) {
 
     let mut longest:usize = 0;
     for (i,node) in graph.nodes.iter().enumerate() {
-        println!("No. {}, max: {} ",i,graph_stats.max_length);
-        let ladder:Vec<usize>  =  WordGraph::longest_ladder(&graph,i,vec!(i),&mut graph_stats); 
+        print!("\rNo. {}, max: {} ",i,graph_stats.max_length);
+        let mut total_iter = 0;
+        let ladder:Vec<usize>  =  WordGraph::longest_ladder(&graph,i,vec!(i),&mut total_iter,&mut graph_stats); 
     }
 }
 
