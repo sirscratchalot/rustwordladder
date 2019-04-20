@@ -7,7 +7,7 @@ const MAX_ITERATIONS:usize = 100000;
 pub struct WordGraph {
     pub nodes:Vec<Word>
 }
-impl WordGraph{
+impl WordGraph {
     pub fn new(nodes:Vec<Word>) -> WordGraph{
         WordGraph {
             nodes:nodes
@@ -38,47 +38,13 @@ impl WordGraph{
      * Sort neighbor array so that neighbor with the most neighbors is index 0.
      */
     fn sort_node_neighbors(&mut self){
-        let refNodes = self.nodes.clone(); //Simplest way to allow retrieving fields in closure.
+        let ref_nodes = self.nodes.clone(); //Simplest way to allow retrieving fields in closure, all u32 so quick clone.
         for mut node in self.nodes.iter_mut() {
-            node.neighbors.sort_by(|a,b| refNodes[*a]
-                                   .neighbors.len().clone().cmp(&refNodes[*b].neighbors.len()));
+            node.neighbors.sort_by(|a,b| ref_nodes[*a]
+                                   .neighbors.len().cmp(&ref_nodes[*b].neighbors.len()));
         }
     }
-    pub fn print_node(&self,node:&Word){
-        println!("For node: {}",node.full);
-        println!("Neighbors: ");
-        for &i in &node.neighbors {
-            println!("{}: {}",i,self.nodes[i].full);
 
-        }
-
-    }
-    pub fn print_nodes(&self){
-        for ref node in &self.nodes {
-            self.print_node(&node);
-        }
-    }
-    pub fn print_graph(graph:&WordGraph,connections:&Vec<usize>){
-        println!("New max length! {}",connections.len());
-        for (i,word) in connections.iter().enumerate() {
-            println!("{}: {}",i,graph.nodes[*word].full);
-        }
-    }
-    fn check_circular(nodes:&Vec<usize>) -> bool{
-        for i in nodes {
-            let mut count:usize = 0;
-            for j in nodes {
-                if i == j {
-                    count = count +1;
-                }
-            }
-            if count > 1 {
-               println!("Circular vector! Found {} at {} positions",i,count);
-               return true;
-            }
-        }
-        return false;
-    }
 
     pub fn longest_ladder(graph: &WordGraph
     ,start_node:usize
@@ -86,8 +52,8 @@ impl WordGraph{
     ,total_iter:&mut usize
     ,graph_stats:&mut GraphStat) -> Vec<usize> {
      /*   
-     //I forgot this was here and spent an hour per evening for a week trying to figure out why my graphs were stalling at 50 length. 
-     //Left in here because humble pie is healthy for you.
+     //Forgot this was here and spent an hour per evening for a week trying to figure out why my graphs were stalling at 50 length. 
+     //Left in here because humble pie is healthy for you. Still can't remember why it was added in the first place.
      if connections.len()>50 {
             return connections;
         }*/
@@ -95,11 +61,11 @@ impl WordGraph{
         let mut longest_walk:Vec<usize>=connections.to_owned();
         let node_origin:&Word = &graph.nodes[start_node];
 
-        for (i,node) in node_origin.neighbors.iter().enumerate() {
-            if(total_iter.clone()>MAX_ITERATIONS){
+        for (_i,node) in node_origin.neighbors.iter().enumerate() {
+            if total_iter.clone()>MAX_ITERATIONS {
                 return longest_walk;
             }
-            if !connections.contains(node) {
+            if !connections.contains(node) { //Prevent revisiting previous nodes, causing circular.
                 let mut connect_me = connections.to_owned();
                 connect_me.push(node.clone());
                 let path = WordGraph::longest_ladder(
@@ -122,10 +88,49 @@ impl WordGraph{
         }
         //print!("\rThe end my friend!: {}, {}",longest_walk.len(),graph.nodes[start_node].full); 
         longest_walk 
+    }
+
+    pub fn print_node(&self,node:&Word){
+        println!("For node: {}",node.full);
+        println!("Neighbors: ");
+        for &i in &node.neighbors {
+            println!("{}: {}",i,self.nodes[i].full);
+
+        }
 
     }
 
+    pub fn print_nodes(&self){
+        for ref node in &self.nodes {
+            self.print_node(&node);
+        }
+    }
+
+    pub fn print_graph(graph:&WordGraph,connections:&Vec<usize>){
+        println!("New max length! {}",connections.len());
+        for (i,word) in connections.iter().enumerate() {
+            println!("{}: {}",i,graph.nodes[*word].full);
+        }
+    }
+
+    fn check_circular(nodes:&Vec<usize>) -> bool{
+        for i in nodes {
+            let mut count:usize = 0;
+            for j in nodes {
+                if i == j {
+                    count = count +1;
+                }
+            }
+            if count > 1 {
+               println!("Circular vector! Found {} at {} positions",i,count);
+               return true;
+            }
+        }
+        return false;
+    }
 }
+unsafe impl Send for WordGraph{}
+unsafe impl Sync for WordGraph{}
 #[cfg(test)]
 mod tests {
     use graph::WordGraph;
@@ -153,7 +158,7 @@ mod tests {
 
     for (i,node) in graph.nodes.iter().enumerate() {
         println!("No. {}, max: {} ",i,graph_stats.max_length);
-        let ladder:Vec<usize>  =  WordGraph::longest_ladder(&graph,i,vec!(i),&mut graph_stats); 
+        let ladder:Vec<usize>  =  WordGraph::longest_ladder(&graph,i,vec!(i),&mut 0,&mut graph_stats); 
         if ladder.len()>longest.len() {
             longest = ladder;
         }

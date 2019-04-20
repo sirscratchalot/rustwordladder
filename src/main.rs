@@ -3,22 +3,23 @@ use graph::WordGraph;
 use graph::graphstat::GraphStat;
 use graph::word::Word;
 use std::env;
+use std::thread;
 use std::io::BufReader;
 use std::io::BufRead;
-use std::io::Result;
 use std::fs::File;
 use std::path::Path;
+use std::sync::mpsc;
 use std::error::Error;
+
 fn main() {
     let args:Vec<String> = env::args().collect();
     match args.get(1) {
         Some(arg) => walk_the_tree_walk(arg.clone()),
         _ => ()
     }
-    let size = args.len() as u32; //Usize is always copied. "as" keyword allows casting.
-
 
 }
+
 fn walk_the_tree_walk(file_path:String) {
     let path = Path::new(&file_path);
     let reader = match File::open(Path::new(path)) {
@@ -32,13 +33,26 @@ fn walk_the_tree_walk(file_path:String) {
     let mut graph = WordGraph::new(word_up);
 
     graph.setup_neighbors(); 
-    graph.print_nodes();
 
-    let mut longest:usize = 0;
-    for (i,node) in graph.nodes.iter().enumerate() {
+    for (i,_node) in graph.nodes.iter().enumerate() {
         print!("\rNo. {}, max: {} ",i,graph_stats.max_length);
-        let mut total_iter = 0;
-        let ladder:Vec<usize>  =  WordGraph::longest_ladder(&graph,i,vec!(i),&mut total_iter,&mut graph_stats); 
+        let _ladder:Vec<usize>  =  WordGraph::longest_ladder(&graph,i,vec!(i),&mut 0,&mut graph_stats); 
+    }
+}
+
+fn start_async_walk(graph:WordGraph){
+    let (sender,receiver)= mpsc::channel();
+    for _num in 0..4 {
+      let send=sender.clone();
+      thread::spawn(move||{
+        send.send("GRRR")}); //Triggers walk of words for first X concurrent threads.
+    }
+
+    for resp in 0..graph.nodes.len() {
+      match receiver.recv() {
+         Ok(result) => println!("{}",result),
+        _ => println!("No result for {}",resp)
+      }
     }
 }
 
