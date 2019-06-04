@@ -35,19 +35,31 @@ fn walk_the_tree_walk(file_path:String) {
     let word_up:Vec<Word> = reader.lines().filter(|line| match line { Ok(_string) => true, _ => false})
         .map(|string| {Word::new(string.unwrap())}).collect(); //words
     let mut graph = WordGraph::new(word_up);
-    //let mut graph_stats = GraphStat::new();
     graph.setup_neighbors(); 
-    start_async_walk(graph);
-    /*for (i,_node) in graph.nodes.iter().enumerate() {
+    _start_sync_walk(graph);
+    //start_async_walk(graph,4);
+}
+
+/**
+ *Avoids using Arc reference counting etc, so is actually different to a single threaded multithread call.
+ Left for comparison.
+ */
+fn _start_sync_walk(graph:WordGraph){
+
+    let mut graph_stats = GraphStat::new();
+
+    let mut longest:Vec<usize> = vec!();
+    for (i,_node) in graph.nodes.iter().enumerate() {
         print!("\rNo. {}, max: {} ",i,graph_stats.max_length);
-        let _ladder:Vec<usize>  =  WordGraph::longest_ladder(&graph,i,vec!(i),&mut 0,&mut graph_stats); 
-    }*/
+        longest = compare_longest(longest,WordGraph::_longest_ladder(&graph,i,vec!(i),&mut 0,&mut graph_stats)); 
+    }
+    println!("Longest graph identified is: {}",longest.len());
+    _print_the_thing(&graph,longest);
 }
 
 
-fn start_async_walk(graph:WordGraph){
+fn start_async_walk(graph:WordGraph,threads:usize){
     let mut longest:Vec<usize> = vec!();
-    let threads = 4; //Could be input
     let total = graph.nodes.len();
     let immutable_share = Arc::new(graph);
 
@@ -67,10 +79,12 @@ fn start_async_walk(graph:WordGraph){
          },
         _ => println!("No result for {}",resp)
       }
-      start_thread(resp+threads,
+      if resp < total-threads {
+        start_thread(resp+threads,
                    &stat_lock,
                    &sender,
                    &immutable_share);//Put next iteration on queue.
+      }
     }
 
     println!("Longest graph identified is: {}",longest.len());
@@ -96,8 +110,7 @@ fn start_thread(start_node:usize,
       thread::Builder::new().stack_size(32 * 1024 * 1024).spawn(move||{
         let calculated_value = (start_node,WordGraph::_longest_ladder_async(&graph,start_node,vec!(start_node),&mut 0,&stat));
         write_check(sender.send(calculated_value));
-        }
-        ).unwrap(); //Triggers walk of words for first X concurrent threads.
+        }).unwrap(); //Triggers walk of words for first X concurrent threads.
 }
 fn write_check(result:Result<(),SendError<(usize,Vec<usize>)>>){
   match result {

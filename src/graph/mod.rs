@@ -5,9 +5,11 @@ use graph::word::Word;
 use graph::graphstat::GraphStat;
 
 const MAX_ITERATIONS:usize = 100000;
+
 pub struct WordGraph {
     pub nodes:Vec<Word>
 }
+
 impl WordGraph {
     pub fn new(nodes:Vec<Word>) -> WordGraph{
         WordGraph {
@@ -25,16 +27,15 @@ impl WordGraph {
             let node_one = &mut slice_tuple.0[slice_tuple.0.len()-1]; //Mutable ref number one.
             for (j,mut node_too) in slice_tuple.1.iter_mut().enumerate(){
                 let check = node_one.check_neighbor(&mut node_too); //Mutable ref number two.
-
                 if check {
                     node_one.add_neighbor(j+i+1);
                     node_too.add_neighbor(i);
                 }
-
             }
         }
         self.sort_node_neighbors();
     }
+
     /**
      * Sort neighbor array so that neighbor with the most neighbors is index 0.
      */
@@ -82,7 +83,7 @@ impl WordGraph {
                     if graph_stats.max_length < longest_walk.len() {
                         graph_stats.max_length = longest_walk.len().clone();
                         println!("New max length vector found: {}",graph_stats.max_length);
-                        WordGraph::_print_graph(&graph.nodes,&longest_walk);
+            //            WordGraph::_print_graph(&graph.nodes,&longest_walk);
                     }
                 }
 
@@ -119,7 +120,7 @@ impl WordGraph {
                     if graph_stats.read().unwrap().max_length < longest_walk.len() {
                         graph_stats.write().unwrap().max_length = longest_walk.len().clone();
                         println!("New max length vector found: {}",longest_walk.len());
-                        WordGraph::_print_graph(&graph.nodes,&longest_walk);
+              //summary          WordGraph::_print_graph(&graph.nodes,&longest_walk);
                     }
                 }
 
@@ -169,8 +170,6 @@ impl WordGraph {
         return false;
     }
 }
-unsafe impl Send for WordGraph{}
-unsafe impl Sync for WordGraph{}
 #[cfg(test)]
 mod tests {
     use graph::WordGraph;
@@ -181,8 +180,8 @@ mod tests {
         let circular = vec!(1,2,3,4,3,3);
         let not_circular = vec!(1,2,3,4,5,6);
 
-        assert_eq!(WordGraph::check_circular(&circular),true);
-        assert_eq!(WordGraph::check_circular(&not_circular),false);
+        assert_eq!(WordGraph::_check_circular(&circular),true);
+        assert_eq!(WordGraph::_check_circular(&not_circular),false);
 
 
     }
@@ -193,11 +192,11 @@ mod tests {
         let mut graph = WordGraph::new(words);
         let mut graph_stats = GraphStat::new();
         graph.setup_neighbors();
-        graph.print_nodes();
+        graph._print_nodes();
         let mut longest:Vec<usize> = Vec::new();
 
     for (i,node) in graph.nodes.iter().enumerate() {
-        println!("No. {}, max: {} ",i,graph_stats.max_length);
+        println!("No. {}, max: {} ",i.to_string(),graph_stats.max_length);
         let ladder:Vec<usize>  =  WordGraph::_longest_ladder(&graph,i,vec!(i),&mut 0,&mut graph_stats); 
         if ladder.len()>longest.len() {
             longest = ladder;
