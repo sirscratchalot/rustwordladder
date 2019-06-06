@@ -36,7 +36,7 @@ fn walk_the_tree_walk(file_path:String) {
         .map(|string| {Word::new(string.unwrap())}).collect(); //words
     let mut graph = WordGraph::new(word_up);
     graph.setup_neighbors(); 
-    _start_sync_walk(graph);
+    start_async_walk(graph);
     //start_async_walk(graph,4);
 }
 
