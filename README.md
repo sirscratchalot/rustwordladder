@@ -19,6 +19,7 @@ Provided file: knowngraph.txt can be used to start a quick test-walk.
 
 From input:
 
+```bash
 chfa
 hall
 grph
@@ -34,10 +35,11 @@ bxtr
 sall
 salk
 walk
-
+```
 
 The output would be:
 
+```bash
 New max length vector found: 8
 Longest graph identified is: 8
 hell
@@ -48,4 +50,4 @@ wall
 walk
 salk
 sall
-
+```
