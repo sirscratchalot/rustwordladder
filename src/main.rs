@@ -79,7 +79,6 @@ fn start_async_walk(graph:WordGraph,threads:usize){
     for resp in 0..total {
       match receiver.recv() {
          Ok(result) => {
-           println!("{}",result.0);
            longest = compare_longest(longest,result.1); 
          },
         _ => println!("No result for {}",resp)
