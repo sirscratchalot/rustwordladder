@@ -16,8 +16,11 @@ use std::error::Error;
 fn main() {
     let args:Vec<String> = env::args().collect();
     match args.get(1) {
-        Some(arg) => walk_the_tree_walk(arg.clone()),
-        _ => println!("This program needs an input of equivalent length words to run.")
+        Some(arg) => walk_the_tree_walk(arg.clone(),match args.get(2) {Some(arg) => arg,_ => "1"} 
+        ),
+        _ => println!("Program takes two input arguments:\r\n
+                      - File containing words of an equal length: wordladder knowngraph.txt\r\n
+                      - Can also provide a second argument containing number of threads (defaults to 1): wordladder ../knowngraph.txt 4")
     }
 
 }
@@ -25,7 +28,9 @@ fn main() {
  *Read file of equivalent length words, calculate neighbors for each block and
  *calculate longest path via a depth-first approach.
  */
-fn walk_the_tree_walk(file_path:String) {
+fn walk_the_tree_walk(file_path:String, threads : &str) {
+  let number_of_threads = match threads.parse::<usize>() { Ok(num) => num,_=>1};
+  println!("Commencing run for arguments {:?}, {:?} threads",file_path,number_of_threads);
     let path = Path::new(&file_path);
     let reader = match File::open(Path::new(path)) {
         Err(why_man_why) => panic!("I just couldn't do it. I'm sorry. {} {}",file_path,why_man_why.description()),
@@ -36,8 +41,8 @@ fn walk_the_tree_walk(file_path:String) {
         .map(|string| {Word::new(string.unwrap())}).collect(); //words
     let mut graph = WordGraph::new(word_up);
     graph.setup_neighbors(); 
-    start_async_walk(graph);
-    //start_async_walk(graph,4);
+    //_start_sync_walk(graph);
+    start_async_walk(graph,number_of_threads);
 }
 
 /**
